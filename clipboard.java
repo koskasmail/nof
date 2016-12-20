@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public final class clipboard implements ClipboardOwner 
 {	
-        //
+    //
 	// Do Nothing
 	public void lostOwnership( Clipboard aClipboard, Transferable aContents) 
 	{

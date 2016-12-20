@@ -1,5 +1,5 @@
 
-import java.awt.Component;
+
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -29,7 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import org.eclipse.wb.swing.FocusTraversalOnArray;
+//import org.eclipse.wb.swing.FocusTraversalOnArray;
 
 
 
@@ -44,21 +46,30 @@ public class nof
 	private   String     delimiter      = ",";      //delimiter for breaking the string
 
 
-	//property
+	//result
 	private   long      intTotalLineNumber   = 0;
 	private   long      intTotalCharInFile   = 0;
-	private   long      intFileSize          = 0;
-	private   long      intFileSizeMb        = 0;
 	private   long      intTotalMatches      = 0;
 	private   long []   intToatalperSearch   = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//array (5 + 40).
-	private   int       intSeekType          = 1; //which radio buttun.
+  private ArrayList<Long> ALngToatalperSearch = new ArrayList();
+	
+	//fnOsProperty
+	//private   long      intFileSize          = 0; //log
+	private   long        intFileSize          = 0; //log	
+	private   double      intFileSizeKB        = 0;
+	private   double      intFileSizeMb        = 0;
+	private   double      intFileSizeGB        = 0;
+	private   SimpleDateFormat     sdf       = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+	private   String    strFilelastModified  = "";
 	
 	
-
-
+	private   int       intSeekType          = 1; //which radio buttun.	
+	
+	
 	//file choser
-	private   JFileChooser   fileopen   =   new JFileChooser();
-
+	private   String         current_path  =  "$HOME"; //"./"; 
+//	private   JFileChooser   fileopen   =   new JFileChooser(current_path);  //FullPath
+	private   JFileChooser   fileopen   =   new JFileChooser(current_path);  //FullPath
 
 	//Gui - Variable
 	private   JFrame       frame                =   null;
@@ -74,11 +85,13 @@ public class nof
 	private   JLabel       frm1lblStringSeek1   =   null;
 
 	private   JButton      Frm1SelectFile       =   null;
-	private   JButton      Frm1BtProperties     =   null;
+	private   JButton      Frm1BtResult         =   null;
+	private   JButton      Frm1BtOsProperty     =   null; //TODO
+	private   JButton      Frm1BtFileViewer     =   null; //TODO	
 	private   JButton      Frm1BtnExit          =   null;
 	private   JButton      Frm1Butclean         =   null;
 
-	private   JButton      Frm1ButFind        =   null;
+	private   JButton      Frm1ButFind          =   null;
 	private   JButton      Frm1ButSNR           =   null;	
 
 	private   JTextField   frm1txtStringSeek1   =   null;
@@ -105,18 +118,18 @@ public class nof
 	//file read
 	private   String   str   =   null;
 
-	//property enable_true/false
-	private   boolean  blproperty = false;
+	//result enable_true/false
+	private   boolean  blresult = false;
 
 	//****
 
 	//private   JProgressBar   pbRR;
 
-	static    long   minlf   =   0;  // read file - min line.
-	static    long   maxlf   =   0;	 // read file - max line.
-	static    long   currif  =   0;  // current record
-	private   long   curper  =   0;  // current pecent
-	private   long   preper  =   0;  // preper if priv = curper
+	static    long   minlf   =   0;  // read file - min line(in file).
+	static    long   maxlf   =   0;	 // read file - max line(in file).
+	static    long   currif  =   0;  // current record (line number)
+	private   long   curper  =   0;  // current pecent (line percent number)
+	private   long   preper  =   0;  // preper if priv = curper (if curper > preper then update view).
 
 	static   pbar    spb     =   null;
 
@@ -171,8 +184,10 @@ public class nof
 			frm1txtStringSeek1.setEnabled(false);
 			Frm1ButFind.setEnabled(false);
 			Frm1ButSNR.setEnabled(false);
+			Frm1BtFileViewer.setEnabled(false);
+			Frm1BtOsProperty.setEnabled(false);
 			Frm1Butclean.setEnabled(false);
-			Frm1BtProperties.setEnabled(false);
+			Frm1BtResult.setEnabled(false);
 			Frm1BtnExit.setEnabled(false);
 			frm1lblStringSeek1.setEnabled(false);
 			rbfull.setEnabled(false);
@@ -193,8 +208,10 @@ public class nof
 			frm1txtStringSeek1.setEnabled(true);
 			Frm1ButFind.setEnabled(true);
 			Frm1ButSNR.setEnabled(true);
+			Frm1BtFileViewer.setEnabled(true);
+			Frm1BtOsProperty.setEnabled(true);			
 			Frm1Butclean.setEnabled(true);
-			Frm1BtProperties.setEnabled(true);
+			Frm1BtResult.setEnabled(true);
 			Frm1BtnExit.setEnabled(true);
 			frm1lblStringSeek1.setEnabled(true);
 			rbfull.setEnabled(true);
@@ -261,7 +278,7 @@ public class nof
 			if (file.exists() == false)
 			{
 			   JOptionPane.showMessageDialog(frame ,"~~ WARNING ~~ \n \n The selected file is not a valid file... \n Please Select Another File .  \n ","WARNING",JOptionPane.ERROR_MESSAGE); //JOptionPane.WARNING_MESSAGE);
-  			   l = new log("warning","File","<"+StSourceFileName+">"+ " Not Exist, Please Select Another File."); //info
+  			   l = new log("warning","File","<"+StSourceFileName+">"+ " Not Exist, Please Select Another File ."); //info
   			   return false;
 			}
 			else
@@ -306,29 +323,94 @@ public class nof
 //		return true;
 	}
 
+	
+	//
+	//---[fnOsProperty]---------------------------------
+	//
+	public void fnOsProperty(String StTextFileName) throws Exception
+	{
+		l = new log("info","OS Calculating", " " + frm1txtSelectFile.getText().toString() + "");
 
+		//set default
+		intFileSize          = 0;
+		intFileSizeKB        = 0;
+		intFileSizeMb        = 0;
+		intFileSizeGB        = 0;
+		
+		// File Size (byte / KB / MB / GB).
+		File fs = new File(StTextFileName);
+		intFileSize = fs.length();
+
+	//	System.out.println("---+++" + intFileSize + " byte");
+	
+		
+		if (intFileSize > 0) 
+		{
+		    if ((intFileSize / 1024) > 0)
+		    {
+		    	intFileSizeKB = (intFileSize   / 1024);   //KB - KiloByte
+		    }
+		    
+		    if (((intFileSize / 1024) / 1024) > 0)
+		    {
+		    	intFileSizeMb = ((intFileSize / 1024) / 1024);
+		    }
+
+		    if ((((intFileSize / 1024) / 1024) / 1024) > 0)
+		    {
+		    	intFileSizeGB = (((intFileSize / 1024) / 1024) / 1024);
+		    }
+
+		    
+		    //intFileSizeGB
+		}			
+
+		
+		//*****del.me---test only
+		// DecimalFormat df = new DecimalFormat("#.##");
+	    //   System.out.print(df.format(d));
+
+		
+/*		// Min File Size Assign    //remark ??
+		if (intFileSize == 0)
+			intFileSize = 1;
+*/
+
+		
+		l = new log("info","File size", " <" + intFileSize   + " Byte>  <" 
+				                            + intFileSizeKB + " KB>  <"
+					                        + intFileSizeMb + " MB>  <"
+					                        + intFileSizeGB + " GB> "				                            
+				                            + "");
+		
+	//	System.out.println("++++++" + intFileSize + " Byte");
+		
+		
+		
+		// File - Date - Last Modified.		
+		strFilelastModified = sdf.format(fs.lastModified());
+		l = new log("info","File last modified", " " + strFilelastModified + "");
+		
+		// DF - 
+		
+		// File Permission: (rwx)
+
+		
+	}
+	 
+	
+	
 	//
-	//---[fnReadTextFileProperty]---------------------------------
+	//---[fnReadTextFileProperty/ies]---------------------------------
 	//
-	public int fnReadTextFileProperty(String StTextFileName) throws Exception
+	public int fnReadTextFileProperties(String StTextFileName) throws Exception
 	{
 		intTotalLineNumber = 0;
 		intTotalCharInFile = 0;
-		intFileSize = 0;
-
+		//intFileSize = 0;
 
 
 		l = new log("info","File Calculating", " " + frm1txtSelectFile.getText().toString() + "");
-
-		//file size.
-		File fs = new File(StTextFileName);
-		intFileSize = fs.length();
-		intFileSize = (intFileSize/1024);   //KD - KiloByte
-		intFileSizeMb = intFileSize / 1024; //MB - MegaByte
-		
-		
-		if (intFileSize == 0)
-			intFileSize = 1;
 
 		pbar spb2 = new pbar();
 		spb2.setStatus(0, 100, 0); //min,max,cur
@@ -345,7 +427,7 @@ public class nof
 			BufferedReader in = new BufferedReader(new FileReader(StTextFileName));
 
 			while ((str = in.readLine()) != null)
-			{
+			{				
 				intTotalLineNumber++;
 				intTotalCharInFile = intTotalCharInFile + str.length();
 			}
@@ -374,12 +456,13 @@ public class nof
 	//
 	//---[fnWriteResultToTextFile]---------------------------------
 	//
-	private void fnWriteResultToTextFile(long SearchFileIndex, String NewLineToAdd, String Search) throws Exception
+	private void fnWriteResultToTextFile(long SearchFileIndex, String NewLineToAdd, int Search) throws Exception
 	{
-		String StTargetFileName = "./FileTmp_" + Search + ".nof";
+		
+		String StTargetFileName = "./Tmp_OutPut_" + Search + ".nof";
 
 		l = new log("data","<"+Search+">","<"+StTargetFileName+">"+ "~~~>   " + NewLineToAdd);
-
+		
 		try
 		{
 			BufferedWriter out = new BufferedWriter(new FileWriter(StTargetFileName, true));
@@ -387,7 +470,8 @@ public class nof
 			//TODO 'switch-case' instead of 'if'
 			if (os == 0)
 			{
-				out.write("\n\r" + NewLineToAdd + "\n\r"); //"\n\r"
+				//out.write("\n\r" + NewLineToAdd + "\n\r"); //"\n\r"
+				out.write(NewLineToAdd + "\r\n"); //"\r\n" (return+new_line)				
 				//System.out.println("=nof=os-"+os);
 			}
 
@@ -415,6 +499,7 @@ public class nof
 	private int fnReadTextFile(String StTextFileName) throws Exception
 	{
 		int index = 0;
+		int idx   = 0;
 
 		intTotalMatches = 0;
 
@@ -444,9 +529,22 @@ public class nof
 				intToatalperSearch[index] = 0;
 			}
 
-			while ((str = in.readLine()) != null)
+	    //	ALngToatalperSearch(long) array size
+			for (idx=0; idx < StStrSplit.length; idx++)
 			{
-                
+			   ALngToatalperSearch.add(idx, (long) 0);
+			}
+
+/*			// test
+			for (idx=0; idx < StStrSplit.length; idx++)
+			{
+			   System.out.println("ALngToatalperSearch [ " + idx + " ] = " + ALngToatalperSearch.get(idx));
+			}
+*/
+			
+			
+			while ((str = in.readLine()) != null)
+			{				
 				for(index=0; index < StStrSplit.length ; index++)
 				{
 					switch (intSeekType)
@@ -457,7 +555,10 @@ public class nof
 						{
 							intTotalMatches++;
 							intToatalperSearch[index] = intToatalperSearch[index] + 1;
-							fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+							
+							ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
+							//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+							fnWriteResultToTextFile(index,str.toLowerCase(), index);
 						}
 						break;
 						//x..y
@@ -501,8 +602,11 @@ public class nof
 								{
 									intTotalMatches++;
 									intToatalperSearch[index] = intToatalperSearch[index] + 1;
+									
+									ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
 
-									fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									fnWriteResultToTextFile(index,str.toLowerCase(), index);
 								}
 							}
 							else
@@ -519,7 +623,10 @@ public class nof
 								intTotalMatches++;
 								intToatalperSearch[index] = intToatalperSearch[index] + 1;
 
-								fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
+								
+								//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								fnWriteResultToTextFile(index,str.toLowerCase(), index);
 							}
 						}
 						break;
@@ -553,7 +660,10 @@ public class nof
 									intTotalMatches++;
 									intToatalperSearch[index] = intToatalperSearch[index] + 1;
 
-									fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
+									
+									//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									fnWriteResultToTextFile(index,str.toLowerCase(), index);
 								}
 							}
 							else
@@ -567,8 +677,11 @@ public class nof
 							{
 								intTotalMatches++;
 								intToatalperSearch[index] = intToatalperSearch[index] + 1;
+								
+								ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
 
-								fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								fnWriteResultToTextFile(index,str.toLowerCase(), index);								
 							}
 						}
 						break;
@@ -593,8 +706,11 @@ public class nof
 								{
 									intTotalMatches++;
 									intToatalperSearch[index] = intToatalperSearch[index] + 1;
+									
+									ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
 
-									fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+									fnWriteResultToTextFile(index,str.toLowerCase(), index);
 								}
 							}
 							else
@@ -609,7 +725,10 @@ public class nof
 								intTotalMatches++;
 								intToatalperSearch[index] = intToatalperSearch[index] + 1;
 
-								fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								ALngToatalperSearch.set(index, ALngToatalperSearch.get(index)+ 1);
+								
+								//fnWriteResultToTextFile(index,str.toLowerCase(), StStrSplit[index].toLowerCase());
+								fnWriteResultToTextFile(index,str.toLowerCase(), index);
 							}
 						}
 						break;
@@ -636,10 +755,11 @@ public class nof
 					spb.frame.update(spb.frame.getGraphics());
 					frame.update(frame.getGraphics());
 				}
+				
 
 				preper = curper;
 
-
+                //TODO tmp
 				System.out.println(" " + maxlf + "--" + currif + "~~~-> " + curper + "%");
 
 
@@ -658,9 +778,9 @@ public class nof
 
 		//StSourceFileName
 		l = new log("output","source","file-name"+ "~~~>   " + "<" + StSourceFileName + ">");
-		l = new log("output","result","Total chars in file "+ "~~~>   " + "<" + intTotalCharInFile + ">");
-		l = new log("output","result","Total lines in file "+ "~~~>   " + "<" + intTotalLineNumber + ">");
-		l = new log("output","result","File Size "+ "~~~>   " + "<" + intFileSize + " kb>");
+//		l = new log("output","result","Total chars in file "+ "~~~>   " + "<" + intTotalCharInFile + ">");
+//		l = new log("output","result","Total lines in file "+ "~~~>   " + "<" + intTotalLineNumber + ">");
+//		l = new log("output","result","File Size "+ "~~~>   " + "<" + intFileSize + " kb>");
 		l = new log("output","result","Total matches in file "+ "~~~>   " + "<" + intTotalMatches + ">");
 		//System.out.println(" **********~~~~ " + intTotalLineNumber + " ~~~~ " + intTotalCharInFile + " ~~~~ " + intFileSize);
 
@@ -669,6 +789,13 @@ public class nof
 		for(index=0; index < StStrSplit.length ; index++)
 		{
 			l = new log("output",StStrSplit[index], "~~~>   " + "<" + intToatalperSearch[index]+ ">");
+		}
+		
+		
+		for(index=0; index < StStrSplit.length ; index++)
+		{		
+		   System.out.println(" >> " + StStrSplit[index] + " >> " + ALngToatalperSearch.get(index) );
+		   // .set(index, ALngToatalperSearch.get(index)+ 1);
 		}
 		return 1;
 	}
@@ -701,6 +828,34 @@ public class nof
 
 
 	//
+	//
+	//---[check_Gui_Field_value]---------------------------------
+	//   (true==with-value, flase==with-no-value
+	//
+	private boolean check_Gui_File_Field_value()
+	{
+		boolean exists = true;
+
+		if ( (frm1txtSelectFile.getText().equals("")) || (frm1txtSelectFile.getText().equals(null)) ) 
+		{
+			//TODO procedure For Alert.
+			JOptionPane.showMessageDialog(frame ,"~~ WARNING ~~ \n \n Data Missing... \n Select: File-Name.  \n ","WARNING", JOptionPane.WARNING_MESSAGE);
+			
+			l = new log("Warning","No user interaction","the user did not enter a filename.");
+			exists = false;
+		}
+		else
+		{
+			exists = true;
+		}
+
+		return exists;
+	}	
+	
+	
+	
+
+	//
 	//---[check_file_existence]---------------------------------
 	//
 	private boolean check_file_existence (String sfn)
@@ -716,14 +871,14 @@ public class nof
 		if (exists == false)
 		{
 			JOptionPane.showMessageDialog(frame ,"~~ WARNING ~~ \n \n The selected file is not a valid file... \n Please Select Another File .  \n ","WARNING",JOptionPane.ERROR_MESSAGE); //JOptionPane.WARNING_MESSAGE);
-			l = new log("warning","File","<"+StSourceFileName+">"+ " Not Exist, Please Select Another File."); //info
+			l = new log("warning","File","<"+StSourceFileName+">"+ " Not Exist, Please Select Another File. "); //info
 		}
 
 		return exists; //true = exist;
 	}
 
 
-	//
+	////erase old file + split seek
 	//---[Split_Seek_value]---------------------------------
 	//	
 	private void Split_Seek_value()
@@ -731,6 +886,7 @@ public class nof
 		if (StStr != null)  //erase old result file.
 		{
 			erase del = new erase(StStr);
+			//del.erase_output(StStr);
 		}
 
 		// StStr <-- frm1txtStringSeek1
@@ -747,8 +903,11 @@ public class nof
 		}	  
 	}
 
-
-	private void submitJob()
+	
+	//
+	//---[findJob]---------------------------------
+	//			
+	private void findJob()
 	{
 		SetVisibleOnOff(0);
 
@@ -763,17 +922,20 @@ public class nof
 			if (check_file_existence(frm1txtSelectFile.getText()) == true)
 			{						
 				StSourceFileName = frm1txtSelectFile.getText();
-
-				Split_Seek_value();
+				
+				Split_Seek_value(); //erase old file + split seek
 
 				try
 				{
 					//check if file/folder/other.
 					if (check_file_status(frm1txtSelectFile.getText().toString()) == true)
 					{
-						//create ReadFileproperty.java
+						
+						//os - property
+						fnOsProperty(frm1txtSelectFile.getText().toString());
+						
 						//count min/max
-						fnReadTextFileProperty(frm1txtSelectFile.getText().toString());
+						fnReadTextFileProperties(frm1txtSelectFile.getText().toString());
 
 						//create ReadFileDate.java
 						//read file
@@ -782,8 +944,8 @@ public class nof
 						//write to log - end of process.
 						l = new log("info","sub process", "have been completed");
 
-						//3.Properties -> property the file (enable)
-						blproperty = true;
+						//3.Result -> Result the file (enable)
+						blresult = true;
 					}
 				}
 				catch (Exception e)
@@ -792,15 +954,21 @@ public class nof
 				}
 			}
 		}
-
-		SetVisibleOnOff(1);		
+		//audio
+		utils.playSoundFile(nof.class.getResourceAsStream("074.wav"), false);
+		
+		SetVisibleOnOff(1);
+		
 	}
 
 	
-	//stop 
-	private void submitJobStop()
+    //***
+	//
+	//---[PropertyJob]---------------------------------
+	//		
+	private void findJobStop()
 	{
-		System.out.println("submitJobStop + flag");
+		System.out.println("findJobStop + flag");
 	}
 
 
@@ -819,7 +987,7 @@ public class nof
 			{						
 				StSourceFileName = frm1txtSelectFile.getText();
 
-				Split_Seek_value();
+				Split_Seek_value();  //erase old file + split seek
 
 				try
 				{
@@ -848,36 +1016,171 @@ public class nof
 		
 	}
 	
-	
-	private void propertyJob()
+		
+	//
+	//---[viewJob]---------------------------------
+	//			
+	private void viewJob()
 	{
-		l = new log("event","Frm1BtProperties", "have been pressed");
-		if (blproperty == true) //property
+		
+		l = new log("event","Frm1BtFileViewer", "have been pressed");
+		
+		SetVisibleOnOff(0);
+
+		//**refresh button.
+		//Frm1ButFind.update(Frm1ButFind.getGraphics());
+		//frame.update(frame.getGraphics());
+
+
+		//Text-Field: frm1txtSelectFile || frm1txtStringSeek1 === true==have a value, false==no-value
+		if (check_Gui_File_Field_value	() == true)
+		{   //file exist yes/no
+			if (check_file_existence(frm1txtSelectFile.getText()) == true)
+			{						
+				StSourceFileName = frm1txtSelectFile.getText();
+				
+				//Split_Seek_value(); //erase old file + split seek
+
+				try
+				{
+					//check if file/folder/other.
+					if (check_file_status(frm1txtSelectFile.getText().toString()) == true)
+					{
+						
+						//os - property
+						fnOsProperty(frm1txtSelectFile.getText().toString());
+						
+						//count min/max
+						fnReadTextFileProperties(frm1txtSelectFile.getText().toString());
+
+						
+						//***TODO: Action
+                        view v = new view();
+                        
+						
+						//write to log - end of process.
+						//l = new log("info","sub process", "have been completed");
+
+						//3.Result -> Result the file (enable)
+						//blresult = true;
+					}
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+
+		SetVisibleOnOff(1);		
+	}
+
+		
+	private void resultJob()
+	{
+
+		
+		l = new log("event","Frm1BtResult", "have been pressed");
+		
+		if (blresult == true) //result
 		{
 			int     index  =  0;
-			property pr = new property();
+			result pr = new result();
 			pr.setResult(" Source file name"      , "   " + StSourceFileName                   ,0);
-			pr.setResult(" Total lines in file"   , "   " + String.valueOf(intTotalLineNumber) ,1);
-			pr.setResult(" Total char in file"    , "   " + String.valueOf(intTotalCharInFile) ,2);
-			pr.setResult(" Source file Size"      , "   " + String.valueOf(intFileSize)+" kb " ,3);
-			pr.setResult(" Total matches in file" , "   " + String.valueOf(intTotalMatches)    ,4);					
+//			pr.setResult(" Total lines in file"   , "   " + String.valueOf(intTotalLineNumber) ,1);
+//			pr.setResult(" Total char in file"    , "   " + String.valueOf(intTotalCharInFile) ,2);
+//			pr.setResult(" Source file Size"      , "   " + String.valueOf(intFileSize)+" kb " ,3);
+			pr.setResult(" Total matches in file" , "   " + String.valueOf(intTotalMatches)    ,1);					
 
 
 			for(index=0; index < StStrSplit.length ; index++)
 			{
-				pr.setResult(" <<  " + String.valueOf(StStrSplit[index]) + "  >> ", "   " + String.valueOf(intToatalperSearch[index])+ "  match",index+5);
+				pr.setResult(" <<  " + String.valueOf(StStrSplit[index]) + "  >> ", "   " + String.valueOf(intToatalperSearch[index])+ "  match",index+2);
+				
+				//setResult[index + 2][0] = "Total matches in file";
+				//setResult[index + 2][1] = String.valueOf(intTotalMatches);				
 			}
-
-			pr.getResult();
+						
+			pr.getResult();					
+			
 		}
 
-		if (blproperty == false) //no property
+		
+		if (blresult == false) //no result
 		{
-			JOptionPane.showMessageDialog(frame ,"~~ property ~~ \n \n no properties exist, please submit a search job first \n ","property", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(frame ,"~~ result ~~ \n \n no Result exist, please submit a search job first \n ","result", JOptionPane.INFORMATION_MESSAGE);
 		}
-
 	}
 
+	
+	
+    //***
+	//
+	//---[PropertyJob]---------------------------------
+	//		
+	private void PropertyJob()
+	{
+		l = new log("event","Frm1BtOsProperty", "have been pressed");
+
+		SetVisibleOnOff(0);
+
+		//**refresh button.
+		//Frm1ButFind.update(Frm1ButFind.getGraphics());
+		//frame.update(frame.getGraphics());
+
+
+		//Text-Field: frm1txtSelectFile || frm1txtStringSeek1 === true==have a value, false==no-value
+		if (check_Gui_File_Field_value	() == true)
+		{   //file exist yes/no
+			if (check_file_existence(frm1txtSelectFile.getText()) == true)
+			{						
+				StSourceFileName = frm1txtSelectFile.getText();
+				
+				Split_Seek_value(); //erase old file + split seek
+
+				try
+				{
+					//check if file/folder/other.
+					if (check_file_status(frm1txtSelectFile.getText().toString()) == true)
+					{
+						
+						//os - property
+						fnOsProperty(frm1txtSelectFile.getText().toString());
+						
+						//count min/max
+						fnReadTextFileProperties(frm1txtSelectFile.getText().toString());
+
+						
+						//***TODO: Action
+                        property p = new property();
+                        p.setResult(" Source file name"      , "   " + StSourceFileName                   ,0);
+            			p.setResult(" Total lines in file"   , "   " + String.valueOf(intTotalLineNumber) ,1);
+            			p.setResult(" Total char in file"    , "   " + String.valueOf(intTotalCharInFile) ,2);
+            			p.setResult(" Source file Size"      , "   " + String.valueOf(intFileSize)+ " Byte " + "   " +  String.valueOf(intFileSizeKB)+" Kb " + "   " + String.valueOf(intFileSizeMb)+" Mb " + "   " + String.valueOf(intFileSizeGB)+" GB ",3);
+                         		
+            			
+            			p.getResult();
+						
+						//write to log - end of process.
+						//l = new log("info","sub process", "have been completed");
+
+						//3.Result -> Result the file (enable)
+						//blresult = true;
+					}
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+
+		SetVisibleOnOff(1);		
+	
+	}
+	
+	
+	
 	//
 	//exit NOF software (yes/no)
 	private void ExitProc()
@@ -895,7 +1198,8 @@ public class nof
 
 			frame.dispose();
 			l = new log("event","Exit Software","Exit Pressed - Thank you for using NOF Software.");
-			erase del = new erase(StStr);
+			erase del = new erase(StStr); //StStr);
+			//del.erase_output(StStr);
 			System.exit(0); // Exit Program
 			
 			break;
@@ -904,11 +1208,6 @@ public class nof
 			break;
 		}
 		
-/*		frame.dispose();
-		l = new log("event","Exit_option","Exit - have been pressed");
-		erase del = new erase(StStr);
-		System.exit(0); // Exit Program
-*/
 	}
 	
 	
@@ -917,11 +1216,13 @@ public class nof
 	//	
 	private nof()
 	{
-		blproperty = false;
+		blresult = false;
 
 
 		frame = new JFrame("NOF...");
 		frame.setResizable(false);
+		//frame.setLocationRelativeTo(null);  //--center--
+		frame.setAlwaysOnTop(true);
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(nof.class.getResource("/icons/star.jpg")));
 
 
@@ -955,12 +1256,6 @@ public class nof
 				//Exit(0)
 				if (event.getActionCommand().equals("Exit"))
 				{
-					/*
-					frame.dispose();
-					l = new log("event","menu-bar","Exit - have been pressed");
-					erase del = new erase(StStr);
-					System.exit(0); // Exit Program
-					*/
 					ExitProc();
 				}
 			}
@@ -1016,11 +1311,11 @@ public class nof
 		jpfrm1.add(frm1txtStringSeek1);
 
 
-		// Button - submit //
+		// Button - find //
 		Frm1ButFind = new JButton("Find");
-		Frm1ButFind.setActionCommand("submit");
+		Frm1ButFind.setActionCommand("find");
 		Frm1ButFind.setBounds(12, 205, 117, 25);//12,220
-		Frm1ButFind.setToolTipText("press submit to start process.");
+		Frm1ButFind.setToolTipText("press find to start process.");
 		jpfrm1.add(Frm1ButFind);
 
 
@@ -1031,11 +1326,11 @@ public class nof
 		jpfrm1.add(Frm1Butclean);
 
 
-		// Button - Property //
-		Frm1BtProperties = new JButton("Properties");
-		Frm1BtProperties.setBounds(270, 205, 117, 25); //12, 260, 117, 25
-		Frm1BtProperties.setToolTipText("press Properties to view the result of the search.");
-		jpfrm1.add(Frm1BtProperties);
+		// Button - result //
+		Frm1BtResult = new JButton("Result");
+		Frm1BtResult.setBounds(270, 205, 117, 25); //12, 260, 117, 25
+		Frm1BtResult.setToolTipText("press Properties to view the result of the search.");
+		jpfrm1.add(Frm1BtResult);
 
 
 		// Button - Exit //		
@@ -1045,12 +1340,28 @@ public class nof
 		jpfrm1.add(Frm1BtnExit);
 
 		
-		// Button - submit //
+		// Button - Replace //
 		Frm1ButSNR = new JButton("Replace");
-	//	Frm1ButSNR.setActionCommand("submit");
+	//	Frm1ButSNR.setActionCommand("find");
 		Frm1ButSNR.setBounds(12, 236, 117, 25);
 		Frm1ButSNR.setToolTipText("press SNR to start Seek and Replace.");
 		jpfrm1.add(Frm1ButSNR);		
+
+	
+		// Button - view //
+		Frm1BtFileViewer = new JButton("View");
+		Frm1BtFileViewer.setBounds(141, 236, 117, 25);
+		Frm1BtFileViewer.setToolTipText("press clear to clear the search fields.");
+		jpfrm1.add(Frm1BtFileViewer);
+		
+		
+		// Button - property //
+		Frm1BtOsProperty = new JButton("File_Info");
+		Frm1BtOsProperty.setBounds(270, 236, 117, 25); //12, 260, 117, 25
+		Frm1BtOsProperty.setToolTipText("press Properties to view the result of the search.");
+		jpfrm1.add(Frm1BtOsProperty);
+		
+		
 		
 
 		// Display //
@@ -1149,12 +1460,15 @@ public class nof
 
 
 		Frm1Butclean.setMnemonic(KeyEvent.VK_C);
-		Frm1ButFind.setMnemonic(KeyEvent.VK_D);
-		Frm1BtProperties.setMnemonic(KeyEvent.VK_P);
+		Frm1ButFind.setMnemonic(KeyEvent.VK_F);
+		Frm1BtResult.setMnemonic(KeyEvent.VK_T);
 		Frm1BtnExit.setMnemonic(KeyEvent.VK_E);
 		Frm1ButSNR.setMnemonic(KeyEvent.VK_R);
 		
-		Frm1SelectFile.setMnemonic(KeyEvent.VK_F);
+		Frm1BtFileViewer.setMnemonic(KeyEvent.VK_V);
+		Frm1BtOsProperty.setMnemonic(KeyEvent.VK_I);
+		
+		Frm1SelectFile.setMnemonic(KeyEvent.VK_A);
 
 
 		//
@@ -1199,8 +1513,8 @@ public class nof
 		public void mouseExited(MouseEvent e) {};
 		public void mouseMoved(MouseEvent e) {};
 		public void mouseDragged(MouseEvent e) {};
-
 */
+
 		
 		//
 		//[Listener--frame--(main-Frame)+(erase * out.file) + (Exit(0))--]------------------------------------------
@@ -1210,12 +1524,6 @@ public class nof
 			//Exit(0)
 			public void windowClosing(WindowEvent w)
 			{
-				/*
-				frame.dispose();
-				l = new log("event","menu-bar","Exit - have been pressed");
-				erase del = new erase(StStr);
-				System.exit(0); // Exit Program
-				*/
 				ExitProc();
 			}
 		});
@@ -1295,7 +1603,8 @@ public class nof
 		{
 			public void actionPerformed(ActionEvent ev)
 			{
-				int ret = fileopen.showDialog(panel, "Select a file...");//"Open file"
+				int ret = fileopen.showDialog(panel, "Select a file...");//"Open file"				
+
 
 				if (ret == JFileChooser.APPROVE_OPTION)
 				{
@@ -1323,54 +1632,37 @@ public class nof
 				setRadioButtonSelection(intSeekType);
 				rbfull.setSelected(true);
 				SetVisibleAction(1);
-				blproperty = false;
+				blresult = false;
 			}
 		});
 
 
 		//
-		//[Listener--Frm1ButFind--(Submit All Action)--]------------------------------------------
+		//[Listener--Frm1ButFind--(find All Action)--]------------------------------------------
 		//					
 		Frm1ButFind.addActionListener(new ActionListener( )
 		{
 
 			public void actionPerformed(ActionEvent ev)
 			{				
-				submitJob();
+				findJob();
 			}
 		});
 
 
 		//
-		//[Listener--Frm1BtProperties--(Properties/Result of Submit)--]------------------------------------------
+		//[Listener--Frm1BtResult--(Properties/Result of find)--]------------------------------------------
 		//	
-		Frm1BtProperties.addActionListener(new ActionListener( )
+		Frm1BtResult.addActionListener(new ActionListener( )
 		{
 			public void actionPerformed(ActionEvent ev)
 			{
-				propertyJob();				
+				resultJob();				
 			}
 		});
 
 
-		//
-		//[Listener--Frm1BtnExit--(Exit program)--]------------------------------------------
-		//	
-		Frm1BtnExit.addActionListener(new ActionListener( )
-		{
-			public void actionPerformed(ActionEvent ev)
-			{
-				/*
-				frame.dispose();
-				l = new log("event","menu-bar","Exit - have been pressed");
-				erase del = new erase(StStr);
-				System.exit(0); // Exit Program
-				*/
-				ExitProc();
-			}
-		});
-
-
+		
 		//
 		//[Listener--Frm1BtnExit--(Exit program)--]------------------------------------------
 		//	
@@ -1387,6 +1679,60 @@ public class nof
 				ReplaceJob();				
  			}
 		});
+
+
+		
+		//
+		//[Listener--Frm1BtFileViewer--(view File Text)--]------------------------------------------
+		//	
+		Frm1BtFileViewer.addActionListener(new ActionListener( )
+		{
+			public void actionPerformed(ActionEvent ev)
+			{
+/*				//snr s = new snr();
+				snr r = new snr();
+				
+				r.setParameters(StSourceFileName,);
+				//r.getparameters();
+*/				
+				viewJob();				
+ 			}
+		});		
+		
+	
+		//Frm1BtOsProperty
+		//
+		//[Listener--Frm1BtOsProperty--(OS Property)--]------------------------------------------
+		//	
+		Frm1BtOsProperty.addActionListener(new ActionListener( )
+		{
+			public void actionPerformed(ActionEvent ev)
+			{
+				PropertyJob();
+/*				//snr s = new snr();
+				snr r = new snr();
+				
+				r.setParameters(StSourceFileName,);
+				//r.getparameters();
+*/				
+			//	System.out.println("Frm1BtOsProperty");
+				//viewJob();				
+ 			}
+		});		
+		
+		
+		
+		//
+		//[Listener--Frm1BtnExit--(Exit program)--]------------------------------------------
+		//	
+		Frm1BtnExit.addActionListener(new ActionListener( )
+		{
+			public void actionPerformed(ActionEvent ev)
+			{
+				ExitProc();
+			}
+		});
+		
 		
 
 		//
@@ -1395,12 +1741,12 @@ public class nof
 		frame.setJMenuBar(mbar); //adding menu-bar --> frame
 		frame.getContentPane().add(jpfrm1);
 
-		frame.setSize(536, 316); //800, 572 = full-screen
+		frame.setSize(536, 326); //(536, 316) //800, 572 = full-screen
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(frame.DO_NOTHING_ON_CLOSE); // EXIT_ON_CLOSE);
 		//
 		//Order By Tab/s.Tab
-		frame.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{Frm1SelectFile, frm1txtSelectFile, frm1txtStringSeek1, rbfull, rbFromTo, rbFromToEndOfSeekString, rbfromToEnd, frm1txtfromchar, frm1txttochar, Frm1ButFind, Frm1Butclean, Frm1BtProperties, Frm1ButSNR  , Frm1BtnExit}));
+		//frame.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{Frm1SelectFile, frm1txtSelectFile, frm1txtStringSeek1, rbfull, rbFromTo, rbFromToEndOfSeekString, rbfromToEnd, frm1txtfromchar, frm1txttochar, Frm1ButFind, Frm1ButSNR, Frm1Butclean, Frm1BtFileViewer, Frm1BtResult, Frm1BtOsProperty,   Frm1BtnExit}));
 
 
 	}
@@ -1410,8 +1756,8 @@ public class nof
 	//	
 	public static void main(String[] args)  throws PropertyVetoException
 	{
-		nof nf = new nof();	
 		log l = new log("info","Nof Software","nof software has started successfully");
+		nof nf = new nof();	
 
 		//***TODO os auto detect
 		//***TODO Gui/Tui (Setup.ini)
@@ -1420,13 +1766,13 @@ public class nof
 		{
 			nf.os = Integer.valueOf(args[0]);
 
-			if ((nf.os == 0) || (nf.os == 1))
+			if ((nf.os == 0) || (nf.os == 1)) //(linux/unix)/win
 			{
 				l.os = nf.os;
 				System.out.println("os = " + nf.os);
 			}			
 
-			if ((nf.os != 0) && (nf.os != 1))
+			if ((nf.os != 0) && (nf.os != 1)) //else default (0/win)
 			{
 				nf.os = 0; 
 				l.os = nf.os;
@@ -1435,11 +1781,13 @@ public class nof
 		}
 		else
 		{	
-			System.out.println("os = WINdows");
+			System.out.println("os = WINdows"); //last default (0/win)
 			//OS - 0=win; 1=lin
 			nf.os = 0; 
 			l.os = nf.os;	
 		}
+		
+		System.out.println("----> " + nf.os);
 
 		//		javax.swing.SwingUtilities.invokeLater(new Runnable()
 		//		{
@@ -1450,6 +1798,3 @@ public class nof
 		//		});
 	}
 }
-
-
-

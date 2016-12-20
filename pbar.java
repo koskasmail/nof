@@ -1,3 +1,5 @@
+
+
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,6 +9,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
+
+
 
 public class pbar
 {
@@ -93,7 +97,7 @@ public class pbar
 
 
 		label = new JLabel("");
-		label.setBounds(12, 45, 426, 23);
+		label.setBounds(12, 45, 250, 23);
 		jpfrm1.add(label);
 		jpfrm1.add(pb);		
 

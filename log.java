@@ -1,3 +1,5 @@
+
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,7 +33,7 @@ public class log
 		String   StLogFileName = "./nof.log";
 
 
-		SimpleDateFormat ft =  new SimpleDateFormat ("[dd/MM/yyy , E , hh:mm:ss]"); //("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+		SimpleDateFormat ft =  new SimpleDateFormat ("[dd/MM/yyy , hh:mm:ss]");  //("[dd/MM/yyy , E , hh:mm:ss]"); //("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
 
 		StLogData = ft.format(dNow) + "--[" + msg_type + "]-" + "-[" + subject + ": " + description + "]-- .";
 		System.out.println(StLogData);
@@ -47,7 +49,8 @@ public class log
 
 				if (this.os == 0)
 				{
-				   out.write("\n\r" + StLogData + "\n\r"); //"\n\r"
+				   //out.write("\n\r" + StLogData + "\n\r"); //"\n\r"
+				   out.write(StLogData + "\r\n"); // "\n\r"				   
 				}
 				
 				if (this.os == 1)

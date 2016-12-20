@@ -1,4 +1,7 @@
+
+
 import java.io.File;
+
 
 
 public class erase
@@ -7,7 +10,7 @@ public class erase
 	private   String     delimiter = ","; //delimiter for breaking the string
 	private   String     tmpFile   = null;
 
-	public erase(String stFileName)
+	public erase (String stFileName)
 	{
 
 		//check if <stFileName> is empty/null.
@@ -18,9 +21,7 @@ public class erase
 
 		for (int i=0 ; i< StStrSplit.length;i++)
 		{
-			//System.out.println("./FileTmp_" + StStrSplit[i].toString() + ".nof");
-
-			tmpFile = "./FileTmp_" + StStrSplit[i].toString() + ".nof";
+			tmpFile = "./Tmp_OutPut_" + i + ".nof";
 			File f = new File(tmpFile);
 
 			// Make sure the file or directory exists and isn't write protected

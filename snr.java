@@ -1,6 +1,7 @@
+
+
 import java.awt.Font;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -9,13 +10,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+
 
 
 public class snr 
@@ -97,13 +97,18 @@ public class snr
 	public snr()
 	{
 		frmSnr = new JFrame("SNR...");
-		frmSnr.setResizable(false);
+		//frmSnr.setResizable(false);
 		frmSnr.setIconImage(Toolkit.getDefaultToolkit().getImage(nof.class.getResource("/icons/star.jpg")));
 
 
 		jpfrm1 = new JPanel();
 		frmSnr.getRootPane().add(jpfrm1);
 		jpfrm1.setLayout(null);
+		
+	/*	JPanel jpfrm1 = new JPanel(); //****
+		JScrollPane scroll3 = new JScrollPane(jpfrm1); //****
+		jpfrm1.add(scroll3); //****
+		*/
 
 
 		// SelectFile - Gui Select //
@@ -270,7 +275,7 @@ public class snr
 			//		if (os == 0)
 			//		{
 			//out.write("\n\r" + NewLineToAdd + "\n\r"); //"\n\r"
-			out.write(NewLineToAdd + "\r"); //"\n\r"
+			out.write(NewLineToAdd + "\r"); //"\r\n"
 			//System.out.println("=nof=os-"+os);
 			//		}
 
@@ -429,3 +434,4 @@ public class snr
 		//s.Gui();
 	}
 }
+

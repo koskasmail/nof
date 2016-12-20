@@ -1,3 +1,5 @@
+
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Toolkit;
@@ -36,6 +38,7 @@ public class property
 			{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},
 			{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},{"",""},            
 	};
+	private int inDataValue = 40;
 	
 	
 	//TODO 09.04.2013
@@ -103,7 +106,8 @@ public class property
 
 
 
-		for (i=0 ; i< this.dataValues[i].length ; i++)
+		//for (i=0 ; i <= this.dataValues[i].length + 1 ; i++) --40/
+		for (i=0 ; i < inDataValue ; i++) //40/(0-39)
 		{
 			if ((this.dataValues[i][0].equalsIgnoreCase("")) || (this.dataValues[i][0].equalsIgnoreCase(null)) )
 			{
@@ -119,6 +123,8 @@ public class property
 			//
 			cbo = cbo + "\n" + (this.rpad(this.dataValues[i][0],50,'.')) + (this.rpad(this.dataValues[i][1],50,' '));
 
+			
+			
 		}
 
 		cbo = cbo + "\n";
@@ -144,7 +150,7 @@ public class property
 
 
 		lblgif1 = new JLabel("");
-		lblgif1.setIcon(new ImageIcon(help.class.getResource("/icons/star.jpg")));
+		lblgif1.setIcon(new ImageIcon(nof.class.getResource("/icons/star.jpg")));
 		lblgif1.setBounds(10, 10, 30, 30);
 		panel.add(lblgif1);
 

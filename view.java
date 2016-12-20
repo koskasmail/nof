@@ -1,3 +1,5 @@
+
+
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -14,6 +16,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
 
+
+
 public class view //extends JFrame 
 {
 	private   JFrame        frame        =   null ;
@@ -25,14 +29,17 @@ public class view //extends JFrame
 	private   JScrollPane   scroll       =   null ;
 	
 	
-	private   JButton      viewButtonPageTop  =   null ;	
-	private   JButton      viewButtonPageMid  =   null ;
-	private   JButton      viewButtonPageBot  =   null ;	
+	private   JButton      viewButtonPageTop   =   null ;	
+	private   JButton      viewButtonPageMid   =   null ;
+	private   JButton      viewButtonPageBot   =   null ;	
 	
-	//private   ImageIcon    image1             =   null ;
-	//private   ImageIcon    image2             =   null ;
-	//private   ImageIcon    image3             =   null ;
-	//private   ImageIcon    image4             =   null ;	
+	private   JButton      viewButtonPageUp    =   null ;
+	private   JButton      viewButtonPageDown  =   null ;	
+	
+	//private   ImageIcon    image1            =   null ;
+	//private   ImageIcon    image2            =   null ;
+	//private   ImageIcon    image3            =   null ;
+	//private   ImageIcon    image4            =   null ;	
 	
 	//TODO more button:  search, file read from line + buffer 
 	private   JButton      viewButtonClose    =   null ;	
@@ -40,7 +47,37 @@ public class view //extends JFrame
 	private   log       l    = null; //log	
 
 	
+	//get/set element
+	private   String     StSourceFileName  =  null ;
+	private   long       lng_cur_min       =  0    ; //buffer from
+	private   long       lng_cur_max       =  0    ; //buffer to
+	private   long       lng_Buffer_size   =  0    ; //== user (from -> to)
+	private   long       lng_file_min      =  0    ; //== 1
+	private   long       lng_file_mid      =  0    ; //== lng_file_max / 2
+	private   long       lng_file_max      =  0    ; //== eof	
+	
+	//check min/max value.
+	private void fn_check_value()
+	{
+		//if cur_min < file_min then cur_min = file_min;
+		//if cur_max > file_max then cur_max = file_max;		
+	}
+	
+	
+	//set file parameters.
+	private void setParameters()
+	{
+		//file_name + path
+		//cur_min = 0 
+		//cur_max = 0
+		//Buffer_size = 500
+		//file_min = 1 (bof/default)
+		//file_mid = file_max / 2
+		//file_max = eof
+		System.out.println("parameters");
+	}
 
+	
 	//[setText], Add line to text "this.StLine"------------------------------------------
 	// 
 	private void setText(String StText)
@@ -78,6 +115,13 @@ public class view //extends JFrame
 		setText("" + nr);
 	}
 
+	//[view], Exit view window------------------------------------------
+	//	
+	private void Exit_View()
+	{
+		l = new log("event","view","view window is now closed");
+		frame.dispose();		
+	}
 	
 	//[view], GUI MAIN MENU + Listner------------------------------------------
 	//
@@ -99,19 +143,32 @@ public class view //extends JFrame
        //image1 = new ImageIcon("pgup.jpg");  
        //viewButtonPageTop = new JButton(" head ",image1);
        //viewButtonPageTop = new JButton(" head ",new ImageIcon(view.class.getResource("/icons/pgup.jpg")));
-       viewButtonPageTop = new JButton("head ");
-       viewButtonPageTop.setToolTipText("file read buffer up");
+       viewButtonPageTop = new JButton("TOP");
+       viewButtonPageTop.setToolTipText("read from Top file");
 
        
        //image2 = new ImageIcon("icons/pgdown.jpg"); 
-       viewButtonPageMid = new JButton("clear");
-       viewButtonPageMid.setToolTipText("file read buffer down");       
-	        
-      // image3 = new ImageIcon("icons/nof.jpg");
-       viewButtonPageBot = new JButton("tail ");
+       viewButtonPageMid = new JButton("MID");
+       viewButtonPageMid.setToolTipText("read from MID file");       
 
+       
+      // image3 = new ImageIcon("icons/nof.jpg");
+       viewButtonPageBot = new JButton("BOT");
+       viewButtonPageMid.setToolTipText("read from BOT file");       
+
+       
+       viewButtonPageUp = new  JButton("PgUp");
+       viewButtonPageUp.setToolTipText("Page Up - read buffer line up");
+       
+       
+       viewButtonPageDown = new  JButton("PgUp");
+       viewButtonPageDown.setToolTipText("Page Up - read buffer line up");
+       
+       
+       
       // image4 = new ImageIcon("icons/go.jpg");
-       viewButtonClose = new JButton("close");       
+       viewButtonClose = new JButton("Close");
+       viewButtonPageMid.setToolTipText("Exit Current Window");       
        	         
        bar = new JToolBar();        
        bar.setToolTipText("Tool Bar");
@@ -120,6 +177,8 @@ public class view //extends JFrame
        bar.add(viewButtonPageTop);
        bar.add(viewButtonPageMid);
        bar.add(viewButtonPageBot);
+       bar.add(viewButtonPageUp);
+       bar.add(viewButtonPageDown);       
        bar.add(viewButtonClose);
        
        
@@ -142,9 +201,9 @@ public class view //extends JFrame
 		//[hotKeys (Alt + *)]------------------------------------------
 		//	
 		viewButtonClose.setMnemonic(KeyEvent.VK_C);   //close 
-		viewButtonPageTop.setMnemonic(KeyEvent.VK_1); //top
-		viewButtonPageMid.setMnemonic(KeyEvent.VK_2); //mid
-		viewButtonPageBot.setMnemonic(KeyEvent.VK_3); //bot
+		viewButtonPageTop.setMnemonic(KeyEvent.VK_T); //top
+		viewButtonPageMid.setMnemonic(KeyEvent.VK_M); //mid
+		viewButtonPageBot.setMnemonic(KeyEvent.VK_B); //bot
 		
 		
 
@@ -160,8 +219,10 @@ public class view //extends JFrame
 		{
 			public void actionPerformed(ActionEvent ev)
 			{
-				l = new log("event","view","view window is now closed");
-				frame.dispose();
+				Exit_View();
+				
+				//l = new log("event","view","view window is now closed");
+				//frame.dispose();
 				//log l = new log("event","menu-bar","Exit - have been pressed"); //exit Frame view (current-window)			
 				//System.exit(0); // Exit Program
 			}
@@ -175,9 +236,11 @@ public class view //extends JFrame
 		{
 			//Exit(0)
 			public void windowClosing(WindowEvent w)
-			{
-				l = new log("event","view","view window is now closed");
-				frame.dispose();				
+			{				
+				Exit_View();
+				
+				//l = new log("event","view","view window is now closed");
+				//frame.dispose();				
 				//	log l = new log("event","menu-bar","Exit - have been pressed");
 				//	erase del = new erase(StStr);
 				//System.exit(0); // Exit Program
@@ -192,13 +255,73 @@ public class view //extends JFrame
 		frame.setSize(800, 572); //MIN(546, 326)  //MAX(800, 572)		
 		frame.setVisible(true);
 //		frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
-
 	}
 
 	
-	public static void main (String args [])
+/*	public static void main (String args [])
 	{
+		//System.out.println(System.getProperty("user.dir")); 
 		view h = new view();
-	}	
+	}
+*/	
+	
 }	
+
+
+/*
+
+(BOF)==(0)-------(500)-------(1000)-------(1500)==(EOF)
+
+0..500 
+cur_min = 0 
+cur_max = 0
+Buffer_size = 500
+
+file_min = 0
+file_mid = max / 2 
+file_max = eof 
+
+
+fn_read_file(long min, long max)
+{
+   if min = 0 then 
+      continue();
+   else
+   
+   loop until cur_min. 
+}
+  read file
+
+
+fn_check_file_limit() -->
+if cur_min < file_min then cur_min = file_min
+if cur_max > file_max then cur_max = file_max
+
+[PgUp] -->
+cur_min = cur_min - Buffer_size
+cur_max = cur_min + Buffer_size
+
+[PgDown] -->
+cur_min = cur_min + buf_size
+cur_max = cur_min + buf_size
+
+[fn_set_parameters]
+st_file_name = filename
+cur_min = 0 
+cur_max = 0
+Buffer_size = buff_size;
+
+file_min = 0
+file_mid = max / 2 
+file_max = file_max_line;
+
+[fn_view_start] --->
+nof().button --> view(filename, file_max_line, buff_size)
+fn_set_parameters
+fn_read_file 
+  
+[Top] -->
+[Mid] -->
+[Bot] -->
+*/
 

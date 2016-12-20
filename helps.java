@@ -1,3 +1,5 @@
+
+
 import java.awt.Font;
 import java.awt.TextArea;
 import java.awt.Toolkit;
@@ -8,6 +10,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+
+
 
 public class helps //extends JFrame 
 {

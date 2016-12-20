@@ -1,3 +1,5 @@
+
+
 import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
@@ -7,6 +9,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
 
 
 public class about
@@ -137,10 +140,12 @@ public class about
 		
 	}
 
-
-/*	public static void main (String args [])
+/*
+	public static void main (String args [])
 	{
-		nofAbout jfa = new nofAbout();
-	}*/
+		about jfa = new about();
+	}
+*/
 
 }
+//eof about.java
